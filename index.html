@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SciLabs - Sistema LIMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* Fondo difuminado */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+      z-index: 0;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url('https://images.unsplash.com/photo-1508385082359-fcae5739f4a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80') no-repeat center center/cover;
+      filter: blur(8px) brightness(0.6);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    header {
+      background-color: rgba(0, 51, 102, 0.85);
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    nav {
+      background-color: rgba(0, 85, 153, 0.85);
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    section {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto 0 2rem;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    h2 {
+      color: #003366;
+      margin-top: 0;
+    }
+
+    /* Login y Registro */
+    #login-register {
+      max-width: 400px;
+      margin: 1rem auto 2rem;
+      background: rgba(255,255,255,0.95);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    #login-register h3 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #003366;
+    }
+    #login-register form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #login-register input[type="email"],
+    #login-register input[type="password"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #login-register button {
+      background-color: #003366;
+      color: white;
+      border: none;
+      padding: 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #login-register button:hover {
+      background-color: #005599;
+    }
+    #login-register .toggle-link {
+      text-align: center;
+      margin-top: 0.5rem;
+      color: #005599;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Gestión LIMS */
+    #gestion-lims {
+      max-width: 900px;
+      margin: 2rem auto 4rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.95);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    #gestion-lims h2 {
+      margin-top: 0;
+    }
+    #gestion-lims .tab-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    #gestion-lims .tab-buttons button {
+      flex: 1;
+      padding: 0.5rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      background-color: #eee;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    #gestion-lims .tab-buttons button.active {
+      background-color: #003366;
+      color: white;
+    }
+
+    #gestion-lims form label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+    #gestion-lims form input[type="text"],
+    #gestion-lims form select,
+    #gestion-lims form input[type="date"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    #gestion-lims form button {
+      background: #003366;
+      color: white;
+      border: none;
+      padding: 0.7rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #gestion-lims form button:hover {
+      background: #005599;
+    }
+    #gestion-lims table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+    #gestion-lims table th,
+    #gestion-lims table td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.7rem;
+      text-align: left;
+    }
+    #gestion-lims table thead {
+      background-color: #005599;
+      color: white;
+    }
+    #gestion-lims ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #gestion-lims ul li {
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1><i class="fa-solid fa-flask-vial"></i> SciLabs</h1>
+    <p>Sistema LIMS para laboratorios clínicos modernos</p>
+  </header>
+
+  <nav>
+    <a href="#inicio">Inicio</a>
+    <a href="#servicios">Servicios</a>
+    <a href="#nosotros">Nosotros</a>
+    <a href="#contacto">Contacto</a>
+  </nav>
+
+  <section id="inicio">
+    <h2>Bienvenido a SciLabs</h2>
+    <p>SciLabs es una plataforma LIMS (Laboratory Information Management System) diseñada para optimizar la gestión de muestras, resultados y control de calidad en laboratorios clínicos.</p>
+  </section>
+
+  <section id="servicios">
+    <h2>Servicios</h2>
+    <div class="servicios" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <div class="card">
+        <i class="fa-solid fa-vial fa-2x"></i>
+        <h3>Gestión de Muestras</h3>
+        <p>Registra y controla cada muestra con trazabilidad completa.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-file-medical fa-2x"></i>
+        <h3>Resultados Online</h3>
+        <p>Entrega de resultados a pacientes y profesionales en línea.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-shield-virus fa-2x"></i>
+        <h3>Control de Calidad</h3>
+        <p>Supervisa y audita cada etapa del análisis clínico.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-user-doctor fa-2x"></i>
+        <h3>Acceso Profesional</h3>
+        <p>Plataforma segura para médicos, técnicos y bioquímicos.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="nosotros">
+    <h2>Nosotros</h2>
+    <p>En SciLabs buscamos digitalizar y modernizar los procesos de los laboratorios clínicos con soluciones eficientes, seguras y fáciles de usar.</p>
+  </section>
+
+  <section id="contacto">
+    <h2>Contacto</h2>
+    <p>¿Tienes dudas o quieres más información? Escríbenos a: <strong>contacto@scilabs.cl</strong></p>
+  </section>
+
+  <!-- Login y Registro Visual -->
+  <section id="login-register">
+    <div id="login-form">
+      <h3>Iniciar Sesión</h3>
+      <form onsubmit="alert('Login simulado'); return false;">
+        <input type="email" id="login-email" placeholder="Correo electrónico" required />
+        <input type="password" id="login-password" placeholder="Contraseña" required />
+        <button type="submit">Ingresar</button>
+      </form>
+      <p class="toggle-link" onclick="document.getElementById('login-form').style.display='none'; document.getElementById('register-form').style.display='block';">¿No tienes cuenta? Regístrate</p>
+    </div>
+    <div id="register-form" style="display:none;">
+      <h3>Registro</h3>
+      <form onsubmit="alert('Registro simulado'); return false;">
+        <input type="email" id="register-email" placeholder="Correo electrónico" required />
+        <input type="password" id="register-password" placeholder="Contraseña" required />
+        <button type="submit">Crear Cuenta</button>
+      </form>
+      <p class="toggle-link" onclick="document.getElementById('register-form').style.display='none'; document.getElementById('login-form').style.display='block';">¿Ya tienes cuenta? Inicia sesión</p>
+    </div>
+  </section>
+
+  <!-- Aquí podría ir más contenido como gestión LIMS -->
+
+  <script>
+    // Script simple para alternar entre Login y Registro
+  </script>
+</body>
+</html>
