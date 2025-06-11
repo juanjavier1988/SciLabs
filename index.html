@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SciLabs - Sistema LIMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      background: #f4f7fa;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url('https://centromedicoabc.com/storage/2023/08/shutterstock_1028408488.webp') no-repeat center center/cover;
+      filter: blur(8px) brightness(0.5);
+      z-index: -1;
+    }
+    #login-register, #main-content {
+      max-width: 400px;
+      margin: 4rem auto;
+      background: rgba(255,255,255,0.95);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.15);
+    }
+    #main-content {
+      max-width: 900px;
+      display: none;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    input, button {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 6px;
+    }
+    button {
+      background: #003366;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-editar { background-color: #ffcc00; color: #333; }
+    .btn-eliminar { background-color: #cc0000; color: white; }
+    .mensaje-alerta {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 0.7rem;
+      margin: 1rem auto;
+      border-radius: 6px;
+      max-width: 900px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="mensaje-confirmacion" class="mensaje-alerta"></div>
+
+  <div id="login-register">
+    <div id="login-form">
+      <h2>Iniciar Sesión</h2>
+      <form>
+        <label>Correo electrónico:</label>
+        <input type="email" id="login-email" required />
+        <label>Contraseña:</label>
+        <input type="password" id="login-password" required />
+        <button type="submit">Ingresar</button>
+      </form>
+      <p>¿No tienes cuenta? <button id="show-register">Regístrate</button></p>
+      <p id="login-error" style="color:red;"></p>
+    </div>
+    <div id="register-form" style="display:none;">
+      <h2>Registro</h2>
+      <form>
+        <label>Correo electrónico:</label>
+        <input type="email" id="register-email" required />
+        <label>Contraseña:</label>
+        <input type="password" id="register-password" required />
+        <label>Repetir Contraseña:</label>
+        <input type="password" id="register-password2" required />
+        <button type="submit">Registrarse</button>
+      </form>
+      <p>¿Ya tienes cuenta? <button id="show-login">Inicia Sesión</button></p>
+      <p id="register-error" style="color:red;"></p>
+    </div>
+  </div>
+
+  <div id="main-content">
+    <header>
+      <h1><i class="fa-solid fa-flask-vial"></i> SciLabs</h1>
+      <p>Sistema de Gestión de Información de Laboratorio (LIMS) diseñado para clínicas, laboratorios e instituciones que buscan eficiencia, trazabilidad y acceso seguro a los datos clínicos.</p>
+    </header>
+
+    <section id="panel-usuario">
+      <h2><i class="fa-solid fa-user-circle"></i> Panel de Usuario</h2>
+      <p>Bienvenido al sistema, puedes gestionar tus muestras y revisar información relevante del laboratorio.</p>
+    </section>
+
+    <section id="historial">
+      <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Actividades</h2>
+      <ul>
+        <li>Sesión iniciada correctamente.</li>
+        <li>Última edición de muestra: <em>pendiente</em>.</li>
+        <li>Última eliminación: <em>pendiente</em>.</li>
+      </ul>
+    </section>
+
+    <section id="gestion">
+      <h2>Gestión de Muestras</h2>
+      <form id="form-muestra">
+        <label>ID de Muestra:</label>
+        <input type="text" id="id-muestra" required />
+        <label>Tipo de Muestra:</label>
+        <input type="text" id="tipo-muestra" required />
+        <label>Fecha de Recolección:</label>
+        <input type="date" id="fecha-muestra" required />
+        <button type="submit">Guardar</button>
+      </form>
+      <table style="margin-top:2rem; width:100%; border-collapse: collapse;">
+        <thead style="background:#003366; color:white;">
+          <tr>
+            <th>ID</th><th>Tipo</th><th>Fecha</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-muestras"></tbody>
+      </table>
+      <button id="logout" style="margin-top:1rem; background:#999;">Cerrar Sesión</button>
+    </section>
+
+    <section id="estadisticas">
+      <h2><i class="fa-solid fa-chart-bar"></i> Estadísticas</h2>
+      <p>Total de muestras registradas: <span id="total-muestras">0</span></p>
+    </section>
+
+    <section id="ayuda">
+      <h2><i class="fa-solid fa-circle-info"></i> Ayuda Rápida</h2>
+      <p>¿Necesitas asistencia? Contacta a soporte@sci-labs.com o revisa la guía del usuario.</p>
+    </section>
+  </div>
+
+  <script>
+    const loginDiv = document.getElementById('login-form');
+    const registerDiv = document.getElementById('register-form');
+    const loginRegister = document.getElementById('login-register');
+    const mainContent = document.getElementById('main-content');
+    const mensaje = document.getElementById('mensaje-confirmacion');
+    const showRegister = document.getElementById('show-register');
+    const showLogin = document.getElementById('show-login');
+
+    showRegister.onclick = () => { loginDiv.style.display = 'none'; registerDiv.style.display = 'block'; };
+    showLogin.onclick = () => { registerDiv.style.display = 'none'; loginDiv.style.display = 'block'; };
+
+    let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    let muestras = [];
+    let editando = null;
+
+    loginDiv.querySelector('form').onsubmit = e => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      const u = usuarios.find(u => u.email === email);
+      if (!u || u.password !== pass) {
+        document.getElementById('login-error').textContent = 'Credenciales inválidas';
+        return;
+      }
+      entrarApp();
+    };
+
+    registerDiv.querySelector('form').onsubmit = e => {
+      e.preventDefault();
+      const email = document.getElementById('register-email').value;
+      const pass = document.getElementById('register-password').value;
+      const pass2 = document.getElementById('register-password2').value;
+      if (pass !== pass2) {
+        document.getElementById('register-error').textContent = 'Las contraseñas no coinciden';
+        return;
+      }
+      if (usuarios.find(u => u.email === email)) {
+        document.getElementById('register-error').textContent = 'Usuario ya registrado';
+        return;
+      }
+      usuarios.push({ email, password: pass });
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      alert('Registro exitoso');
+      showLogin.click();
+    };
+
+    function entrarApp() {
+      loginRegister.style.display = 'none';
+      mainContent.style.display = 'block';
+      cargarMuestras();
+      renderTabla();
+    }
+
+    document.getElementById('logout').onclick = () => {
+      if (confirm('¿Cerrar sesión?')) {
+        mainContent.style.display = 'none';
+        loginRegister.style.display = 'block';
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        muestras = [];
+        renderTabla();
+      }
+    };
+
+    const form = document.getElementById('form-muestra');
+    const tabla = document.getElementById('tabla-muestras');
+
+    function guardarMuestras() {
+      localStorage.setItem('muestras', JSON.stringify(muestras));
+    }
+    function cargarMuestras() {
+      muestras = JSON.parse(localStorage.getItem('muestras')) || [];
+    }
+    function mostrarMensaje(texto) {
+      mensaje.textContent = texto;
+      mensaje.style.display = 'block';
+      setTimeout(() => mensaje.style.display = 'none', 3000);
+    }
+    function renderTabla() {
+      tabla.innerHTML = '';
+      muestras.forEach((m, i) => {
+        tabla.innerHTML += `<tr>
+          <td>${m.id}</td><td>${m.tipo}</td><td>${m.fecha}</td>
+          <td>
+            <button class='btn-editar' onclick='editar(${i})'>Editar</button>
+            <button class='btn-eliminar' onclick='eliminar(${i})'>Eliminar</button>
+          </td>
+        </tr>`;
+      });
+      document.getElementById('total-muestras').textContent = muestras.length;
+    }
+    form.onsubmit = e => {
+      e.preventDefault();
+      const id = document.getElementById('id-muestra').value;
+      const tipo = document.getElementById('tipo-muestra').value;
+      const fecha = document.getElementById('fecha-muestra').value;
+      if (editando !== null) {
+        muestras[editando] = { id, tipo, fecha };
+        editando = null;
+        mostrarMensaje('Muestra editada correctamente');
+      } else {
+        muestras.push({ id, tipo, fecha });
+        mostrarMensaje('Muestra agregada exitosamente');
+      }
+      guardarMuestras();
+      form.reset();
+      renderTabla();
+    };
+    window.editar = i => {
+      const m = muestras[i];
+      document.getElementById('id-muestra').value = m.id;
+      document.getElementById('tipo-muestra').value = m.tipo;
+      document.getElementById('fecha-muestra').value = m.fecha;
+      editando = i;
+    };
+    window.eliminar = i => {
+      if (confirm('¿Eliminar muestra?')) {
+        muestras.splice(i, 1);
+        guardarMuestras();
+        renderTabla();
+        mostrarMensaje('Muestra eliminada');
+      }
+    };
+  </script>
+</body>
+</html>
